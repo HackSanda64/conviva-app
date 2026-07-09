@@ -1,0 +1,79 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isValidId(id) { return id is string && id.size() <= 128; }
+    function incoming() { return request.resource.data; }
+    
+    // GUEST Validation
+    function isValidGuest(data) {
+      return data.name is string && data.name.size() <= 100 &&
+             data.allowedGuests is number && data.allowedGuests >= 1 &&
+             data.confirmed is bool &&
+             (!('category' in data) || (data.category is string && data.category.size() <= 100));
+    }
+
+    // RSVP Validation
+    function isValidRSVP(data) {
+      return data.guestId is string &&
+             data.name is string &&
+             data.attending is bool &&
+             data.guestsCount is number &&
+             (data.get('message', '') is string && data.get('message', '').size() <= 1000) &&
+             data.createdAt == request.time;
+    }
+
+    // Wishes Validation
+    function isValidWish(data) {
+      return data.name is string && data.name.size() <= 150 &&
+             data.message is string && data.message.size() <= 1000 &&
+             data.createdAt == request.time;
+    }
+
+    // 1. Guests Collection
+    match /guests/{guestId} {
+      // Allowed to search names publicly
+      allow read: if true;
+      
+      // Allowed to create via Admin panel (In a real app, use auth)
+      allow create: if isValidGuest(incoming());
+      
+      // Allowed to update only the 'confirmed' field when RSVPing or resetting
+      allow update: if (
+        incoming().diff(resource.data).affectedKeys().hasOnly(['confirmed']) &&
+        incoming().confirmed is bool
+      );
+      
+      // Delete for admin
+      allow delete: if true;
+    }
+
+    // 2. RSVPs Collection
+    match /rsvps/{rsvpId} {
+      // Public RSVP submission
+      allow create: if isValidRSVP(incoming());
+      
+      // Admin dashboard reading
+      allow read: if true;
+
+      // Delete for admin
+      allow delete: if true;
+    }
+
+    // 3. Wishes Collection
+    match /wishes/{wishId} {
+      // Public wishes reading and creation
+      allow read: if true;
+      allow create: if isValidWish(incoming());
+      
+      // Deletion allowed publicly in demo or for admin (admin panel handles this)
+      allow delete: if true;
+    }
+  }
+}
