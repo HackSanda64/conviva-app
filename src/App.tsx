@@ -1,9 +1,56 @@
 import { useState, useEffect } from 'react';
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db, isFirebaseConfigured } from './lib/firebase';
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, where, getDocs, addDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db, isFirebaseConfigured, auth } from './lib/firebase';
+
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+    emailVerified?: boolean | null;
+    isAnonymous?: boolean | null;
+    tenantId?: string | null;
+    providerInfo?: {
+      providerId?: string | null;
+      email?: string | null;
+    }[];
+  }
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo: auth.currentUser?.providerData?.map(provider => ({
+        providerId: provider.providerId,
+        email: provider.email,
+      })) || []
+    },
+    operationType,
+    path
+  };
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
 
 // Types
-import { Guest, RSVP, Wish, ToastMessage } from './types';
+import { Guest, RSVP, Wish, ToastMessage, WeddingConfig } from './types';
 
 // Components
 import { Toast } from './components/ui/Toast';
@@ -15,8 +62,49 @@ import { InfoGifts } from './components/sections/InfoGifts';
 import { Footer } from './components/sections/Footer';
 import { AdminPanel } from './components/sections/AdminPanel';
 
+const defaultWeddingConfig: WeddingConfig = {
+  groomName: 'Bruno Sandande',
+  brideName: 'Genoveva Alberto',
+  weddingDate: '2026-08-07T16:00:00',
+  welcomeTitle: 'Queridos Amigos e Familiares',
+  welcomeText: 'Com a bênção de Deus e o carinho das nossas famílias, temos a imensa alegria de convidar-vos para celebrar connosco o dia em que uniremos as nossas vidas. A vossa presença é o maior presente e completará a nossa felicidade nesta linda celebração de amor.',
+  dressCodeTitle: 'Dress Code',
+  dressCodeSub: 'Traje: Formal / Social Completo',
+  dressCodeDesc: 'O vosso sorriso é o acessório mais importante, mas pedimos que venham elegantes para celebrarmos este dia com todo o brilho que ele merece.',
+  giftsTitle: 'Prenda de Casamento',
+  giftsSub: 'Sugestão de carinho',
+  giftsDesc: 'A vossa presença é a nossa maior alegria, porém se desejarem nos presentear, deixamos aqui as informações para transferência bancária:',
+  accounts: [
+    { name: 'Bruno Sandande (KEVE)', iban: '0047.0000.2841.2596.0612.3' },
+    { name: 'Genoveva Alberto (BCI)', iban: '0005.0000.7305.3223.1019.7' }
+  ],
+  itinerarySteps: [
+    {
+      title: 'Casamento Civil',
+      time: '09:00',
+      place: 'Conservatória do SIAC no Zango 4',
+      desc: 'O início da nossa caminhada legal, onde assinamos o nosso primeiro \'Sim\' oficial perante a lei.',
+      link: 'https://maps.app.goo.gl/yTfaFM6yrqC7ppVeA'
+    },
+    {
+      title: 'Cerimónia Religiosa',
+      time: '16:00',
+      place: 'Camama, Bairro Simione',
+      desc: 'Rua Mufulama. A nossa bênção diante de Deus para selar os nossos votos de amor eterno. Venha testemunhar este momento sagrado!',
+      link: 'https://maps.app.goo.gl/CoPx9C6TdSLbfnjZ9'
+    },
+    {
+      title: 'Copo de Água & Festa',
+      time: '21:00',
+      place: 'Jango do Kikuxi',
+      desc: 'Momento de celebrar a nossa união com um jantar especial, brindes, risadas e muita dança. Junte-se à festa!',
+      link: 'https://maps.app.goo.gl/iPhHzKyhUYZNiM5MA'
+    }
+  ]
+};
+
 export default function App() {
-  const weddingDate = new Date('2026-08-07T10:00:00');
+  const [weddingConfig, setWeddingConfig] = useState<WeddingConfig>(defaultWeddingConfig);
 
   // Core Data States
   const [guestsList, setGuestsList] = useState<Guest[]>([]);
@@ -44,12 +132,39 @@ export default function App() {
     }
   }, [toast]);
 
+  // Fetch wedding configuration from Firestore
+  useEffect(() => {
+    if (isFirebaseConfigured) {
+      const configDocRef = doc(db, 'configs', 'wedding_config');
+      return onSnapshot(configDocRef, (docSnap) => {
+        if (docSnap.exists()) {
+          setWeddingConfig(docSnap.data() as WeddingConfig);
+        } else {
+          setDoc(configDocRef, defaultWeddingConfig).catch(err => {
+            console.error("Error creating initial wedding_config:", err);
+          });
+        }
+      }, (error) => {
+        handleFirestoreError(error, OperationType.GET, 'configs/wedding_config');
+      });
+    } else {
+      const saved = localStorage.getItem('wedding_config_demo');
+      if (saved) {
+        setWeddingConfig(JSON.parse(saved));
+      } else {
+        localStorage.setItem('wedding_config_demo', JSON.stringify(defaultWeddingConfig));
+      }
+    }
+  }, []);
+
   // Fetch Guests List
   useEffect(() => {
     if (isFirebaseConfigured) {
       const q = query(collection(db, 'guests'), orderBy('name', 'asc'));
       return onSnapshot(q, (snapshot) => {
         setGuestsList(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Guest)));
+      }, (error) => {
+        handleFirestoreError(error, OperationType.GET, 'guests');
       });
     } else {
       const saved = localStorage.getItem('wedding_guests_demo');
@@ -69,6 +184,8 @@ export default function App() {
       const q = query(collection(db, 'rsvps'), orderBy('createdAt', 'desc'));
       return onSnapshot(q, (snapshot) => {
         setRsvps(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as RSVP)));
+      }, (error) => {
+        handleFirestoreError(error, OperationType.GET, 'rsvps');
       });
     } else {
       const saved = localStorage.getItem('wedding_rsvps_demo');
@@ -86,6 +203,8 @@ export default function App() {
       const q = query(collection(db, 'wishes'), orderBy('createdAt', 'desc'));
       return onSnapshot(q, (snapshot) => {
         setWishesList(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Wish)));
+      }, (error) => {
+        handleFirestoreError(error, OperationType.GET, 'wishes');
       });
     } else {
       const saved = localStorage.getItem('wedding_wishes_demo');
@@ -313,16 +432,57 @@ export default function App() {
     }
   };
 
+  const handleUpdateWeddingConfig = async (config: WeddingConfig) => {
+    try {
+      if (isFirebaseConfigured) {
+        const configDocRef = doc(db, 'configs', 'wedding_config');
+        await setDoc(configDocRef, config);
+      } else {
+        setWeddingConfig(config);
+        localStorage.setItem('wedding_config_demo', JSON.stringify(config));
+      }
+      showToastMessage("Configurações atualizadas com sucesso!", "success");
+    } catch (err) {
+      console.error(err);
+      showToastMessage("Erro ao atualizar as configurações.", "error");
+      throw err;
+    }
+  };
+
+  const formatWeddingDateText = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return "07 de Agosto de 2026";
+      const months = [
+        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+      ];
+      return `${d.getDate().toString().padStart(2, '0')} de ${months[d.getMonth()]} de ${d.getFullYear()}`;
+    } catch {
+      return "07 de Agosto de 2026";
+    }
+  };
+
+  const currentWeddingDate = weddingConfig && weddingConfig.weddingDate ? new Date(weddingConfig.weddingDate) : new Date('2026-08-07T16:00:00');
+
   return (
     <div className="min-h-screen bg-[#FFFDF9] text-[#2D1A1C] font-serif selection:bg-[#D4AF37]/30">
       {/* Hero Section */}
-      <Hero weddingDate={weddingDate} />
+      <Hero
+        weddingDate={currentWeddingDate}
+        groomName={weddingConfig.groomName}
+        brideName={weddingConfig.brideName}
+        subTitle={formatWeddingDateText(weddingConfig.weddingDate)}
+      />
 
       {/* Welcome / Convite */}
-      <Welcome />
+      <Welcome
+        title={weddingConfig.welcomeTitle}
+        text={weddingConfig.welcomeText}
+      />
 
       {/* Itinerary / Roteiro */}
-      <Itinerary />
+      <Itinerary steps={weddingConfig.itinerarySteps} />
 
       {/* RSVP Section */}
       <RsvpForm
@@ -336,6 +496,13 @@ export default function App() {
       <InfoGifts
         onCopySuccess={(msg) => showToastMessage(msg, 'success')}
         onCopyFallback={(msg) => showToastMessage(msg, 'info')}
+        dressCodeTitle={weddingConfig.dressCodeTitle}
+        dressCodeSub={weddingConfig.dressCodeSub}
+        dressCodeDesc={weddingConfig.dressCodeDesc}
+        giftsTitle={weddingConfig.giftsTitle}
+        giftsSub={weddingConfig.giftsSub}
+        giftsDesc={weddingConfig.giftsDesc}
+        accounts={weddingConfig.accounts}
       />
 
       {/* Footer */}
@@ -355,6 +522,8 @@ export default function App() {
         onDeleteWish={handleDeleteWish}
         isFirebaseConfigured={isFirebaseConfigured}
         showToastMessage={showToastMessage}
+        weddingConfig={weddingConfig}
+        onUpdateWeddingConfig={handleUpdateWeddingConfig}
       />
 
       {/* Floating Animated Toast Alert */}

@@ -75,5 +75,11 @@ service cloud.firestore {
       // Deletion allowed publicly in demo or for admin (admin panel handles this)
       allow delete: if true;
     }
+
+    // 4. Configs Collection
+    match /configs/{configId} {
+      allow read: if true;
+      allow write: if true;
+    }
   }
 }

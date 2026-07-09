@@ -1,17 +1,33 @@
 import { motion } from 'motion/react';
 import { Users, Gift } from 'lucide-react';
+import { BankAccount } from '../../types';
 
 interface InfoGiftsProps {
   onCopySuccess: (message: string) => void;
   onCopyFallback: (message: string) => void;
+  dressCodeTitle?: string;
+  dressCodeSub?: string;
+  dressCodeDesc?: string;
+  giftsTitle?: string;
+  giftsSub?: string;
+  giftsDesc?: string;
+  accounts?: BankAccount[];
 }
 
-export function InfoGifts({ onCopySuccess, onCopyFallback }: InfoGiftsProps) {
-  const accounts = [
+export function InfoGifts({
+  onCopySuccess,
+  onCopyFallback,
+  dressCodeTitle = "Dress Code",
+  dressCodeSub = "Traje: Formal / Social Completo",
+  dressCodeDesc = "O vosso sorriso é o acessório mais importante, mas pedimos que venham elegantes para celebrarmos este dia com todo o brilho que ele merece.",
+  giftsTitle = "Prenda de Casamento",
+  giftsSub = "Sugestão de carinho",
+  giftsDesc = "A vossa presença é a nossa maior alegria, porém se desejarem nos presentear, deixamos aqui as informações para transferência bancária:",
+  accounts = [
     { name: 'Bruno Sandande (KEVE)', iban: '0047.0000.2841.2596.0612.3' },
     { name: 'Genoveva Alberto (BCI)', iban: '0005.0000.7305.3223.1019.7' }
-  ];
-
+  ]
+}: InfoGiftsProps) {
   const handleCopyIban = (iban: string) => {
     try {
       navigator.clipboard.writeText(iban);
@@ -32,10 +48,10 @@ export function InfoGifts({ onCopySuccess, onCopyFallback }: InfoGiftsProps) {
         <div className="w-16 h-16 bg-[#5C131D] text-[#D4AF37] rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-lg shadow-[#5C131D]/10">
           <Users size={28} />
         </div>
-        <h3 className="text-3xl italic font-light mb-4 text-[#5C131D]">Dress Code</h3>
-        <p className="font-sans text-xs uppercase tracking-widest font-black mb-6 text-[#D4AF37]">Traje: Formal / Social Completo</p>
+        <h3 className="text-3xl italic font-light mb-4 text-[#5C131D]">{dressCodeTitle}</h3>
+        <p className="font-sans text-xs uppercase tracking-widest font-black mb-6 text-[#D4AF37]">{dressCodeSub}</p>
         <p className="text-sm italic text-[#5C131D]/75 leading-relaxed">
-          O vosso sorriso é o acessório mais importante, mas pedimos que venham elegantes para celebrarmos este dia com todo o brilho que ele merece.
+          {dressCodeDesc}
         </p>
       </motion.div>
 
@@ -48,10 +64,10 @@ export function InfoGifts({ onCopySuccess, onCopyFallback }: InfoGiftsProps) {
         <div className="w-16 h-16 bg-[#5C131D] text-[#D4AF37] rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-lg shadow-[#5C131D]/10">
           <Gift size={28} />
         </div>
-        <h3 className="text-3xl italic font-light mb-4 text-[#5C131D]">Prenda de Casamento</h3>
-        <p className="font-sans text-xs uppercase tracking-widest font-black mb-6 text-[#D4AF37]">Sugestão de carinho</p>
+        <h3 className="text-3xl italic font-light mb-4 text-[#5C131D]">{giftsTitle}</h3>
+        <p className="font-sans text-xs uppercase tracking-widest font-black mb-6 text-[#D4AF37]">{giftsSub}</p>
         <p className="text-sm italic text-[#5C131D]/75 leading-relaxed mb-8">
-          A vossa presença é a nossa maior alegria, porém se desejarem nos presentear, deixamos aqui as informações para transferência bancária:
+          {giftsDesc}
         </p>
         <div className="space-y-4">
           {accounts.map((account, i) => (

@@ -77,6 +77,27 @@
         }
       },
       "required": ["name", "message", "createdAt"]
+    },
+    "wedding_config": {
+      "title": "WeddingConfig",
+      "description": "Global wedding configuration editable by the couple",
+      "type": "object",
+      "properties": {
+        "weddingDate": { "type": "string" },
+        "groomName": { "type": "string" },
+        "brideName": { "type": "string" },
+        "welcomeTitle": { "type": "string" },
+        "welcomeText": { "type": "string" },
+        "dressCodeTitle": { "type": "string" },
+        "dressCodeSub": { "type": "string" },
+        "dressCodeDesc": { "type": "string" },
+        "giftsTitle": { "type": "string" },
+        "giftsSub": { "type": "string" },
+        "giftsDesc": { "type": "string" },
+        "accounts": { "type": "array" },
+        "itinerarySteps": { "type": "array" }
+      },
+      "required": ["weddingDate", "groomName", "brideName"]
     }
   },
   "firestore": {
@@ -91,6 +112,10 @@
     "wishes": {
       "schema": "wish",
       "description": "Collection of general wedding congratulatory messages"
+    },
+    "configs": {
+      "schema": "wedding_config",
+      "description": "Dynamic wedding website configurations"
     }
   }
 }

@@ -5,9 +5,17 @@ import { useCountdown } from '../../hooks/useCountdown';
 
 interface HeroProps {
   weddingDate: Date;
+  groomName?: string;
+  brideName?: string;
+  subTitle?: string;
 }
 
-export function Hero({ weddingDate }: HeroProps) {
+export function Hero({
+  weddingDate,
+  groomName = "Bruno Sandande",
+  brideName = "Genoveva Alberto",
+  subTitle = "07 de Agosto de 2026"
+}: HeroProps) {
   const countdown = useCountdown(weddingDate);
 
   const countdownItems = [
@@ -54,7 +62,7 @@ export function Hero({ weddingDate }: HeroProps) {
           transition={{ duration: 1.5, delay: 0.2 }}
           className="text-4xl sm:text-5xl md:text-8xl mb-8 font-light italic leading-tight text-[#5C131D] drop-shadow-sm px-2"
         >
-          Bruno Sandande <span className="block md:inline font-sans text-2xl md:text-6xl not-italic text-[#D4AF37] opacity-90 mx-3">&</span> Genoveva Alberto
+          {groomName} <span className="block md:inline font-sans text-2xl md:text-6xl not-italic text-[#D4AF37] opacity-90 mx-3">&</span> {brideName}
         </motion.h1>
 
         <motion.div
@@ -70,7 +78,7 @@ export function Hero({ weddingDate }: HeroProps) {
           transition={{ duration: 1.2, delay: 0.6 }}
           className="text-lg sm:text-xl md:text-3xl font-light tracking-widest mb-12 text-[#5C131D]/95 font-semibold"
         >
-          07 de Agosto de 2026
+          {subTitle}
         </motion.p>
 
         <div className="grid grid-cols-4 gap-2 sm:gap-4 md:flex md:gap-6 justify-center font-sans max-w-sm sm:max-w-md md:max-w-xl mx-auto w-full px-2">

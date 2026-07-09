@@ -29,3 +29,33 @@ export interface ToastMessage {
   message: string;
   type: ToastType;
 }
+
+export interface BankAccount {
+  name: string;
+  iban: string;
+}
+
+export interface ItineraryStepConfig {
+  title: string;
+  time: string;
+  place: string;
+  desc: string;
+  link: string;
+}
+
+export interface WeddingConfig {
+  id?: string;
+  weddingDate: string;
+  groomName: string;
+  brideName: string;
+  welcomeTitle: string;
+  welcomeText: string;
+  dressCodeTitle: string;
+  dressCodeSub: string;
+  dressCodeDesc: string;
+  giftsTitle: string;
+  giftsSub: string;
+  giftsDesc: string;
+  accounts: BankAccount[];
+  itinerarySteps: ItineraryStepConfig[];
+}

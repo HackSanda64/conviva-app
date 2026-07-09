@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Heart, MapPin, Church, PartyPopper, Gavel } from 'lucide-react';
+import { ItineraryStepConfig } from '../../types';
 
 interface ItineraryStep {
   icon: React.ReactNode;
@@ -12,36 +13,52 @@ interface ItineraryStep {
   qrCode: string;
 }
 
-export function Itinerary() {
-  const steps: ItineraryStep[] = [
+interface ItineraryProps {
+  steps?: ItineraryStepConfig[];
+}
+
+const ICONS = [
+  <Gavel size={26} key="civil" />,
+  <Church size={26} key="religious" />,
+  <PartyPopper size={26} key="party" />
+];
+
+export function Itinerary({ steps }: ItineraryProps) {
+  const defaultSteps: ItineraryStepConfig[] = [
     {
-      icon: <Gavel size={26} />,
       title: "Casamento Civil",
       time: "09:00",
       place: "Conservatória do SIAC no Zango 4",
       desc: "O início da nossa caminhada legal, onde assinamos o nosso primeiro 'Sim' oficial perante a lei.",
-      link: "https://maps.app.goo.gl/yTfaFM6yrqC7ppVeA",
-      qrCode: "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://maps.app.goo.gl/yTfaFM6yrqC7ppVeA"
+      link: "https://maps.app.goo.gl/yTfaFM6yrqC7ppVeA"
     },
     {
-      icon: <Church size={26} />,
       title: "Cerimónia Religiosa",
       time: "16:00",
       place: "Camama, Bairro Simione",
       desc: "Rua Mufulama. A nossa bênção diante de Deus para selar os nossos votos de amor eterno. Venha testemunhar este momento sagrado!",
-      link: "https://maps.app.goo.gl/CoPx9C6TdSLbfnjZ9",
-      qrCode: "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://maps.app.goo.gl/CoPx9C6TdSLbfnjZ9"
+      link: "https://maps.app.goo.gl/CoPx9C6TdSLbfnjZ9"
     },
     {
-      icon: <PartyPopper size={26} />,
       title: "Copo de Água & Festa",
       time: "21:00",
       place: "Jango do Kikuxi",
       desc: "Momento de celebrar a nossa união com um jantar especial, brindes, risadas e muita dança. Junte-se à festa!",
-      link: "https://maps.app.goo.gl/iPhHzKyhUYZNiM5MA",
-      qrCode: "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://maps.app.goo.gl/iPhHzKyhUYZNiM5MA"
+      link: "https://maps.app.goo.gl/iPhHzKyhUYZNiM5MA"
     }
   ];
+
+  const actualSteps = steps || defaultSteps;
+
+  const displaySteps: ItineraryStep[] = actualSteps.map((step, idx) => ({
+    icon: ICONS[idx % ICONS.length] || <Heart size={26} />,
+    title: step.title,
+    time: step.time,
+    place: step.place,
+    desc: step.desc,
+    link: step.link,
+    qrCode: step.link ? `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(step.link)}` : ""
+  }));
 
   return (
     <section id="roteiro" className="py-32 px-4 max-w-6xl mx-auto relative">
@@ -60,7 +77,7 @@ export function Itinerary() {
       <div className="relative space-y-8 md:space-y-0 md:flex md:justify-between items-stretch gap-6 lg:gap-8">
         <div className="hidden md:block absolute top-1/2 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent -translate-y-1/2 z-0" />
 
-        {steps.map((step, idx) => (
+        {displaySteps.map((step, idx) => (
           <motion.div
             key={idx}
             initial={{ opacity: 0, y: 40 }}
