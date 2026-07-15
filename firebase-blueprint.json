@@ -1,0 +1,121 @@
+{
+  "entities": {
+    "guest": {
+      "title": "Guest",
+      "description": "Pre-defined invitee who can RSVP",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Full name of the guest"
+        },
+        "allowedGuests": {
+          "type": "number",
+          "description": "Number of seats reserved for this invitation"
+        },
+        "confirmed": {
+          "type": "boolean",
+          "description": "Whether this guest has already submitted an RSVP"
+        },
+        "category": {
+          "type": "string",
+          "description": "Relationship category (e.g. Amigo, Familiar, Irmão em Cristo, etc.)"
+        }
+      },
+      "required": ["name", "allowedGuests"]
+    },
+    "rsvp": {
+      "title": "RSVP",
+      "description": "User RSVP confirmation for the wedding",
+      "type": "object",
+      "properties": {
+        "guestId": {
+          "type": "string",
+          "description": "ID of the guest in the guests collection"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name for verification"
+        },
+        "attending": {
+          "type": "boolean",
+          "description": "Whether the guest is attending"
+        },
+        "guestsCount": {
+          "type": "number",
+          "description": "Number of people attending in this group"
+        },
+        "message": {
+          "type": "string",
+          "description": "Optional message to the couple"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the RSVP was submitted"
+        }
+      },
+      "required": ["guestId", "name", "attending", "guestsCount", "createdAt"]
+    },
+    "wish": {
+      "title": "Wish",
+      "description": "Guest sweet wish or message on the guest message wall",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Full name of the well-wisher"
+        },
+        "message": {
+          "type": "string",
+          "description": "The congratulatory message"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the message was left"
+        }
+      },
+      "required": ["name", "message", "createdAt"]
+    },
+    "wedding_config": {
+      "title": "WeddingConfig",
+      "description": "Global wedding configuration editable by the couple",
+      "type": "object",
+      "properties": {
+        "weddingDate": { "type": "string" },
+        "groomName": { "type": "string" },
+        "brideName": { "type": "string" },
+        "welcomeTitle": { "type": "string" },
+        "welcomeText": { "type": "string" },
+        "dressCodeTitle": { "type": "string" },
+        "dressCodeSub": { "type": "string" },
+        "dressCodeDesc": { "type": "string" },
+        "giftsTitle": { "type": "string" },
+        "giftsSub": { "type": "string" },
+        "giftsDesc": { "type": "string" },
+        "accounts": { "type": "array" },
+        "itinerarySteps": { "type": "array" }
+      },
+      "required": ["weddingDate", "groomName", "brideName"]
+    }
+  },
+  "firestore": {
+    "guests": {
+      "schema": "guest",
+      "description": "Pre-defined list of invitees"
+    },
+    "rsvps": {
+      "schema": "rsvp",
+      "description": "Collection of wedding RSVP entries"
+    },
+    "wishes": {
+      "schema": "wish",
+      "description": "Collection of general wedding congratulatory messages"
+    },
+    "configs": {
+      "schema": "wedding_config",
+      "description": "Dynamic wedding website configurations"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Convite Bruno & Genoveva",
+  "description": "Convite digital de casamento para Bruno Sandande e Genoveva Alberto com confirmação de presença (RSVP) e roteiro do dia.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
