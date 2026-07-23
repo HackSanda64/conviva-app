@@ -10,7 +10,7 @@ enum OperationType {
   GET = 'get',
   WRITE = 'write',
 }
-
+//
 interface FirestoreErrorInfo {
   error: string;
   operationType: OperationType;
