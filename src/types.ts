@@ -45,6 +45,7 @@ export interface ItineraryStepConfig {
 
 export interface WeddingConfig {
   id?: string;
+  siteTitle?: string;
   weddingDate: string;
   groomName: string;
   brideName: string;

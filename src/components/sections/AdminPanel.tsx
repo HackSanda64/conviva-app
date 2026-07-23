@@ -47,6 +47,7 @@ export function AdminPanel({
   const [isAddingGuest, setIsAddingGuest] = useState(false);
 
   // Form states for editing config
+  const [cfgSiteTitle, setCfgSiteTitle] = useState('');
   const [cfgGroomName, setCfgGroomName] = useState('');
   const [cfgBrideName, setCfgBrideName] = useState('');
   const [cfgWeddingDate, setCfgWeddingDate] = useState('');
@@ -64,6 +65,7 @@ export function AdminPanel({
 
   useEffect(() => {
     if (weddingConfig) {
+      setCfgSiteTitle(weddingConfig.siteTitle || '');
       setCfgGroomName(weddingConfig.groomName || '');
       setCfgBrideName(weddingConfig.brideName || '');
       setCfgWeddingDate(weddingConfig.weddingDate || '');
@@ -105,6 +107,7 @@ export function AdminPanel({
     setIsSavingConfig(true);
     try {
       const updatedConfig: WeddingConfig = {
+        siteTitle: cfgSiteTitle,
         weddingDate: cfgWeddingDate,
         groomName: cfgGroomName,
         brideName: cfgBrideName,
@@ -552,8 +555,19 @@ export function AdminPanel({
                     {/* CARD 1: Informações Gerais */}
                     <div className="bg-white p-8 md:p-10 rounded-[2rem] border border-[#E0D8D0]/40 shadow-xl shadow-[#5C131D]/5 space-y-6">
                       <h4 className="text-lg font-bold border-b border-[#E0D8D0]/30 pb-3 flex items-center gap-2">
-                        <Calendar size={18} className="text-[#D4AF37]" /> Nomes dos Noivos & Data
+                        <Calendar size={18} className="text-[#D4AF37]" /> Informações Gerais do Site
                       </h4>
+                      <div className="space-y-2">
+                        <label className="text-xs uppercase font-black tracking-wider text-[#5C131D]/60">Título da Página (O que aparece no separador/aba do navegador)</label>
+                        <input
+                          type="text"
+                          value={cfgSiteTitle}
+                          onChange={e => setCfgSiteTitle(e.target.value)}
+                          className="w-full bg-[#FAF6F0] border border-[#E0D8D0]/60 rounded-xl px-4 py-3.5 text-sm text-[#5C131D] focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-all font-sans font-bold"
+                          placeholder="Ex: Bruno & Genoveva — Convite de Casamento"
+                          required
+                        />
+                      </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div className="space-y-2">
                           <label className="text-xs uppercase font-black tracking-wider text-[#5C131D]/60">Nome do Noivo</label>

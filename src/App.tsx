@@ -63,6 +63,7 @@ import { Footer } from './components/sections/Footer';
 import { AdminPanel } from './components/sections/AdminPanel';
 
 const defaultWeddingConfig: WeddingConfig = {
+  siteTitle: 'Bruno & Genoveva — Convite de Casamento',
   groomName: 'Bruno Sandande',
   brideName: 'Genoveva Alberto',
   weddingDate: '2026-08-07T16:00:00',
@@ -131,6 +132,10 @@ export default function App() {
       return () => clearTimeout(timer);
     }
   }, [toast]);
+
+  useEffect(() => {
+    document.title = weddingConfig.siteTitle || 'Bruno & Genoveva — Convite de Casamento';
+  }, [weddingConfig.siteTitle]);
 
   // Fetch wedding configuration from Firestore
   useEffect(() => {
