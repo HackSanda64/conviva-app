@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Lock, Loader2, Plus, Users, Trash2, MessageSquare, Edit, Save, PlusCircle, Calendar, CreditCard, Heart, MapPin } from 'lucide-react';
+import { Lock, Loader2, Plus, Users, Trash2, MessageSquare, Edit, Save, PlusCircle, Calendar, CreditCard, Heart, MapPin, Phone } from 'lucide-react';
 import { Guest, RSVP, Wish, WeddingConfig, BankAccount, ItineraryStepConfig } from '../../types';
 
 interface AdminPanelProps {
@@ -388,6 +388,8 @@ export function AdminPanel({
                           <thead>
                             <tr className="border-b border-[#E0D8D0]/40 uppercase text-[10px] tracking-widest text-[#5C131D]/60 font-black">
                               <th className="p-6">Convidado</th>
+                              <th className="p-6">Telefone</th>
+                              <th className="p-6">Convidado por</th>
                               <th className="p-6">Presença</th>
                               <th className="p-6 text-center">Lugares</th>
                               <th className="p-6 min-w-[250px]">Mensagem</th>
@@ -398,6 +400,28 @@ export function AdminPanel({
                             {rsvps.length > 0 ? rsvps.map(r => (
                               <tr key={r.id} className="hover:bg-gray-50/50 transition-colors">
                                 <td className="p-6 font-bold text-[#5C131D]">{r.name}</td>
+                                <td className="p-6">
+                                  {r.phone ? (
+                                    <a
+                                      href={`tel:${r.phone}`}
+                                      className="inline-flex items-center gap-1.5 font-mono text-xs font-bold text-[#5C131D] hover:text-[#D4AF37] transition-colors"
+                                    >
+                                      <Phone size={13} className="text-[#D4AF37] shrink-0" />
+                                      <span>{r.phone}</span>
+                                    </a>
+                                  ) : (
+                                    <span className="opacity-30 italic text-xs text-[#5C131D]">—</span>
+                                  )}
+                                </td>
+                                <td className="p-6">
+                                  {r.invitedBy ? (
+                                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#D4AF37]/10 text-[#5C131D] border border-[#D4AF37]/30 inline-block">
+                                      {r.invitedBy}
+                                    </span>
+                                  ) : (
+                                    <span className="opacity-30 italic text-xs text-[#5C131D]">—</span>
+                                  )}
+                                </td>
                                 <td className="p-6">
                                   <span className={r.attending ? "text-green-600 font-bold" : "text-red-400 font-bold"}>
                                     {r.attending ? "Confirmado" : "Declinado"}
@@ -431,7 +455,7 @@ export function AdminPanel({
                               </tr>
                             )) : (
                               <tr>
-                                <td colSpan={5} className="p-20 text-center opacity-30 italic text-[#5C131D]">
+                                <td colSpan={6} className="p-20 text-center opacity-30 italic text-[#5C131D]">
                                   Nenhuma confirmação recebida ainda.
                                 </td>
                               </tr>
@@ -487,6 +511,8 @@ export function AdminPanel({
                           <thead>
                             <tr className="border-b-2 border-[#E0D8D0]/40 uppercase text-[10px] tracking-widest text-[#5C131D]/60 font-black">
                               <th className="pb-6">Nome</th>
+                              <th className="pb-6">Telefone</th>
+                              <th className="pb-6">Convidado por</th>
                               <th className="pb-6">Categoria</th>
                               <th className="pb-6">Lugares</th>
                               <th className="pb-6">Status</th>
@@ -497,6 +523,28 @@ export function AdminPanel({
                             {guestsList.map(g => (
                               <tr key={g.id} className="group text-[#5C131D]">
                                 <td className="py-6 font-bold text-[#5C131D]">{g.name}</td>
+                                <td className="py-6">
+                                  {g.phone ? (
+                                    <a
+                                      href={`tel:${g.phone}`}
+                                      className="inline-flex items-center gap-1.5 font-mono text-xs font-bold text-[#5C131D] hover:text-[#D4AF37] transition-colors"
+                                    >
+                                      <Phone size={13} className="text-[#D4AF37] shrink-0" />
+                                      <span>{g.phone}</span>
+                                    </a>
+                                  ) : (
+                                    <span className="opacity-30 italic text-xs text-[#5C131D]">—</span>
+                                  )}
+                                </td>
+                                <td className="py-6">
+                                  {g.invitedBy ? (
+                                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#D4AF37]/10 text-[#5C131D] border border-[#D4AF37]/30 inline-block">
+                                      {g.invitedBy}
+                                    </span>
+                                  ) : (
+                                    <span className="opacity-30 italic text-xs text-[#5C131D]">—</span>
+                                  )}
+                                </td>
                                 <td className="py-6">
                                   <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border ${
                                     g.category === 'Familiar' ? 'bg-[#5C131D]/5 text-[#5C131D] border-[#5C131D]/20' :

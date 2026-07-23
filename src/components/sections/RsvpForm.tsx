@@ -1,11 +1,30 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, ChevronDown, Check, Loader2, Send } from 'lucide-react';
+import { Search, ChevronDown, Check, Loader2, Send, Phone } from 'lucide-react';
 import { Guest } from '../../types';
+
+export function formatAngolaPhone(value: string): string {
+  let digits = value.replace(/\D/g, '');
+  if (!digits) return '';
+
+  if (!digits.startsWith('9')) {
+    digits = '9' + digits;
+  }
+
+  digits = digits.slice(0, 9);
+
+  if (digits.length <= 3) {
+    return digits;
+  } else if (digits.length <= 6) {
+    return `${digits.slice(0, 3)} ${digits.slice(3)}`;
+  } else {
+    return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
+  }
+}
 
 interface RsvpFormProps {
   guestsList: Guest[];
-  onRsvpSubmit: (selectedGuest: Guest, formData: { attending: boolean; guestsCount: number; message: string }) => Promise<void>;
+  onRsvpSubmit: (selectedGuest: Guest, formData: { attending: boolean; guestsCount: number; message: string; phone: string; invitedBy: string }) => Promise<void>;
   isSubmitting: boolean;
   submitted: boolean;
 }
@@ -18,10 +37,13 @@ export function RsvpForm({
 }: RsvpFormProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
+  const [phoneError, setPhoneError] = useState('');
   const [formData, setFormData] = useState({
     attending: true,
     guestsCount: 1,
-    message: ''
+    message: '',
+    phone: '',
+    invitedBy: 'Bruno Sandande (Noivo)'
   });
 
   const filteredGuests = guestsList.filter(g =>
@@ -31,19 +53,43 @@ export function RsvpForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedGuest) return;
+
+    const rawDigits = formData.phone.replace(/\D/g, '');
+    if (rawDigits.length !== 9 || !rawDigits.startsWith('9')) {
+      setPhoneError('O número de telefone deve ter 9 dígitos e começar por 9 (ex: 923 456 789).');
+      return;
+    }
+
+    setPhoneError('');
     onRsvpSubmit(selectedGuest, formData);
   };
 
   const handleGuestSelect = (guest: Guest) => {
     setSelectedGuest(guest);
+    setPhoneError('');
     setFormData(prev => ({
       ...prev,
-      guestsCount: guest.allowedGuests
+      guestsCount: guest.allowedGuests,
+      phone: guest.phone ? formatAngolaPhone(guest.phone) : '9',
+      invitedBy: guest.invitedBy || 'Bruno Sandande (Noivo)'
     }));
   };
 
   const handleResetSelection = () => {
     setSelectedGuest(null);
+    setPhoneError('');
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatAngolaPhone(e.target.value);
+    setFormData({ ...formData, phone: formatted });
+    if (phoneError) setPhoneError('');
+  };
+
+  const handlePhoneFocus = () => {
+    if (!formData.phone) {
+      setFormData(prev => ({ ...prev, phone: '9' }));
+    }
   };
 
   return (
@@ -164,6 +210,69 @@ export function RsvpForm({
                         />
                       </div>
                     )}
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase tracking-widest font-bold text-[#5C131D]/60 block mb-1">
+                        Número de Telefone / WhatsApp (9 dígitos, começa por 9) <span className="text-[#D4AF37]">*</span>
+                      </label>
+                      <div className="relative">
+                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-[#5C131D]/40" size={18} />
+                        <input
+                          type="tel"
+                          required
+                          maxLength={11}
+                          className={`w-full bg-[#FFFDF9] border ${phoneError ? 'border-red-500 ring-1 ring-red-500' : 'border-[#E0D8D0]'} rounded-2xl py-4 pl-12 pr-4 text-sm font-mono tracking-wider font-semibold focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]`}
+                          placeholder="9XX XXX XXX"
+                          value={formData.phone}
+                          onChange={handlePhoneChange}
+                          onFocus={handlePhoneFocus}
+                        />
+                      </div>
+                      {phoneError ? (
+                        <p className="text-xs text-red-600 font-medium pl-1">{phoneError}</p>
+                      ) : (
+                        <p className="text-[10px] text-[#5C131D]/50 italic pl-1">Exemplo: 923 456 789 (Mascara automática de 9 dígitos)</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase tracking-widest font-bold text-[#5C131D]/60 block mb-1">
+                        Foi convidado(a) por quem? <span className="text-[#D4AF37]">*</span>
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        {[
+                          { id: 'Bruno Sandande (Noivo)', label: 'Bruno Sandande', sub: 'Noivo', icon: '🤵' },
+                          { id: 'Genoveva Alberto (Noiva)', label: 'Genoveva Alberto', sub: 'Noiva', icon: '👰' },
+                          { id: 'Ambos (Noivo & Noiva)', label: 'Ambos', sub: 'Casal / Família', icon: '💑' }
+                        ].map((item) => (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, invitedBy: item.id })}
+                            className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+                              formData.invitedBy === item.id
+                                ? 'bg-[#5C131D] text-white border-[#D4AF37] shadow-md shadow-[#5C131D]/20 ring-1 ring-[#D4AF37]'
+                                : 'bg-[#FFFDF9] text-[#5C131D] border-[#E0D8D0] hover:border-[#D4AF37]/60'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between w-full mb-2">
+                              <span className="text-base">{item.icon}</span>
+                              <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                                formData.invitedBy === item.id ? 'border-[#D4AF37] bg-[#D4AF37]' : 'border-[#E0D8D0]'
+                              }`}>
+                                {formData.invitedBy === item.id && <Check size={10} className="text-white" />}
+                              </div>
+                            </div>
+                            <div>
+                              <span className="text-xs font-bold block leading-tight">{item.label}</span>
+                              <span className={`text-[10px] block mt-0.5 ${formData.invitedBy === item.id ? 'text-[#D4AF37]' : 'text-[#5C131D]/60'}`}>
+                                {item.sub}
+                              </span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
 
                     <div className="space-y-4">
                       <label className="text-[10px] uppercase tracking-widest font-bold text-[#5C131D]/60 block mb-1">Deixe uma mensagem ou conselho carinhoso para nós: (Opcional)</label>

@@ -239,7 +239,7 @@ export default function App() {
   // Handlers for RSVP submissions
   const handleRsvpSubmit = async (
     selectedGuest: Guest,
-    formData: { attending: boolean; guestsCount: number; message: string }
+    formData: { attending: boolean; guestsCount: number; message: string; phone: string; invitedBy: string }
   ) => {
     setIsSubmitting(true);
     try {
@@ -249,11 +249,17 @@ export default function App() {
           name: selectedGuest.name,
           attending: formData.attending,
           guestsCount: formData.attending ? formData.guestsCount : 0,
-          message: formData.message,
+          message: formData.message || '',
+          phone: formData.phone || '',
+          invitedBy: formData.invitedBy || '',
           createdAt: serverTimestamp()
         });
         const guestRef = doc(db, 'guests', selectedGuest.id);
-        await updateDoc(guestRef, { confirmed: true });
+        await updateDoc(guestRef, {
+          confirmed: true,
+          phone: formData.phone || '',
+          invitedBy: formData.invitedBy || ''
+        });
 
         if (formData.message && formData.message.trim()) {
           await addDoc(collection(db, 'wishes'), {
@@ -269,14 +275,16 @@ export default function App() {
           name: selectedGuest.name,
           attending: formData.attending,
           guestsCount: formData.attending ? formData.guestsCount : 0,
-          message: formData.message,
+          message: formData.message || '',
+          phone: formData.phone || '',
+          invitedBy: formData.invitedBy || '',
           createdAt: new Date().toISOString()
         };
         const currentRsvps = [...rsvps, newRsvp];
         setRsvps(currentRsvps);
         localStorage.setItem('wedding_rsvps_demo', JSON.stringify(currentRsvps));
 
-        const updatedGuests = guestsList.map(g => g.id === selectedGuest.id ? { ...g, confirmed: true } : g);
+        const updatedGuests = guestsList.map(g => g.id === selectedGuest.id ? { ...g, confirmed: true, phone: formData.phone || '', invitedBy: formData.invitedBy || '' } : g);
         setGuestsList(updatedGuests);
         localStorage.setItem('wedding_guests_demo', JSON.stringify(updatedGuests));
 

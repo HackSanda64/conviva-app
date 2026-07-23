@@ -16,7 +16,9 @@ service cloud.firestore {
       return data.name is string && data.name.size() <= 100 &&
              data.allowedGuests is number && data.allowedGuests >= 1 &&
              data.confirmed is bool &&
-             (!('category' in data) || (data.category is string && data.category.size() <= 100));
+             (!('category' in data) || (data.category is string && data.category.size() <= 100)) &&
+             (!('phone' in data) || (data.phone is string && data.phone.size() <= 50)) &&
+             (!('invitedBy' in data) || (data.invitedBy is string && data.invitedBy.size() <= 100));
     }
 
     // RSVP Validation
@@ -26,6 +28,8 @@ service cloud.firestore {
              data.attending is bool &&
              data.guestsCount is number &&
              (data.get('message', '') is string && data.get('message', '').size() <= 1000) &&
+             (data.get('phone', '') is string && data.get('phone', '').size() <= 50) &&
+             (data.get('invitedBy', '') is string && data.get('invitedBy', '').size() <= 100) &&
              data.createdAt == request.time;
     }
 
@@ -44,10 +48,9 @@ service cloud.firestore {
       // Allowed to create via Admin panel (In a real app, use auth)
       allow create: if isValidGuest(incoming());
       
-      // Allowed to update only the 'confirmed' field when RSVPing or resetting
+      // Allowed to update 'confirmed', 'phone', and 'invitedBy' fields when RSVPing or resetting
       allow update: if (
-        incoming().diff(resource.data).affectedKeys().hasOnly(['confirmed']) &&
-        incoming().confirmed is bool
+        incoming().diff(resource.data).affectedKeys().hasAny(['confirmed', 'phone', 'invitedBy'])
       );
       
       // Delete for admin

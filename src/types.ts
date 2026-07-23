@@ -4,6 +4,8 @@ export interface Guest {
   allowedGuests: number;
   category?: string;
   confirmed: boolean;
+  phone?: string;
+  invitedBy?: string;
 }
 
 export interface RSVP {
@@ -13,6 +15,8 @@ export interface RSVP {
   attending: boolean;
   guestsCount: number;
   message?: string;
+  phone?: string;
+  invitedBy?: string;
   createdAt: any;
 }
 
